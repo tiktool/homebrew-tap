@@ -20,8 +20,7 @@ jobs:
           rm -rf "$taps/homebrew-tap"
           ln -s "$GITHUB_WORKSPACE" "$taps/homebrew-tap"
 
-      - name: Probe install before trust
-        continue-on-error: true
+      - name: Install the way users do, before any trust step
         run: brew install --cask tiktool/tap/mouse-keys-record-replay && brew uninstall --cask mouse-keys-record-replay
 
       - name: Trust the tap
