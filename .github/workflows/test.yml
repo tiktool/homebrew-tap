@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cask:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Link this checkout as the tiktool/tap tap
+        run: |
+          brew update --quiet
+          taps="$(brew --repository)/Library/Taps/tiktool"
+          mkdir -p "$taps"
+          rm -rf "$taps/homebrew-tap"
+          ln -s "$GITHUB_WORKSPACE" "$taps/homebrew-tap"
+
+      - name: Audit
+        env:
+          HOMEBREW_NO_INSTALL_FROM_API: 1
+        run: brew audit --cask --strict --online tiktool/tap/mouse-keys-record-replay
+
+      - name: Install
+        run: brew install --cask tiktool/tap/mouse-keys-record-replay
+
+      - name: Check the app is in place
+        run: test -x "/Applications/Mouse Keys Record Replay.app/Contents/MacOS/mouse-keys-record-replay"
+
+      - name: Uninstall
+        run: brew uninstall --cask tiktool/tap/mouse-keys-record-replay

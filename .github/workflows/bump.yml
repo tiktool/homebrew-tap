@@ -1,0 +1,44 @@
+name: bump
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update the cask to the latest release
+        id: bump
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$(gh api repos/tiktool/mouse-keys-record-replay/releases/latest --jq .tag_name)"
+          version="${tag#v}"
+          sums="$(curl -fsSL "https://github.com/tiktool/mouse-keys-record-replay/releases/download/${tag}/SHA256SUMS")"
+          sha="$(printf '%s\n' "$sums" | awk '$2 == "mouse-keys-record-replay-macos.zip" { print $1 }')"
+          if [ -z "$sha" ]; then echo "no macOS zip checksum in $tag"; exit 1; fi
+          cask=Casks/mouse-keys-record-replay.rb
+          sed -i -E "s/^  version \".*\"/  version \"${version}\"/; s/^  sha256 \".*\"/  sha256 \"${sha}\"/" "$cask"
+          if git diff --quiet; then
+            echo "already at $version"
+            exit 0
+          fi
+          git -c user.name=TikTool -c user.email=271127222+tiktooldev@users.noreply.github.com \
+            commit -am "mouse-keys-record-replay ${version}"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Test the new version
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run test.yml --ref main
