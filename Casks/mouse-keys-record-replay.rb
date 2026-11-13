@@ -1,6 +1,6 @@
 cask "mouse-keys-record-replay" do
-  version "0.1.6"
-  sha256 "5d533ae0de76616eff2a67a6791258ad0001220ebf16bc9ba76cd10dbb2f93ae"
+  version "0.1.7"
+  sha256 "1cc79ce79ebadd7ff61d6e0bb77f623a89c8fccbaf3e03dce7474e3fd615dedc"
 
   url "https://github.com/tiktool/mouse-keys-record-replay/releases/download/v#{version}/mouse-keys-record-replay-macos.zip",
       verified: "github.com/tiktool/mouse-keys-record-replay/"
